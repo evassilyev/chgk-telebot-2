@@ -15,3 +15,8 @@
 # vendor/
 
 .idea/
+/cmd/bot/.env
+/dist/
+/certificates/
+vars.mk
+/credentials/
