@@ -18,10 +18,10 @@ The goal of this section is to configure the server (VPS) for working with comma
 [^1]: Used in configuration file `vars.mk` as `USER` value  
 [^2]: Used in configuration file `vars.mk` as `PASSWORD` value
 ### Local machine
-Configure SSH client on your local (development) machine (`.ssh/config`) by setting values from the server (VPS)
+Configure host[^3] for your SSH client on your local (development) machine (`.ssh/config`)
 Example:
 ```shell
-Host my_remote_vps[^3]
+Host my_remote_vps
     Port YOUR_PORT_VALUE
     User vps_user
     HostName 8.8.8.8
