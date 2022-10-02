@@ -1,0 +1,5 @@
+# Exclude all except dist and certificates
+**
+
+!/certificates/**
+!/dist/**
