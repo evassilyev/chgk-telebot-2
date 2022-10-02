@@ -34,7 +34,7 @@ generate-certificates:
 	@echo "Done"
 
 .PHONY: deploy
-deploy: generate-certificates build #check-migration-on-server
+deploy: generate-certificates build check-migration-on-server
 	@echo "Copying binary..."
 	@scp dist/app $(SERVER):bot/dist/app
 	@echo "Copying ENV file..."

@@ -12,12 +12,12 @@ import (
 )
 
 type Handler struct {
-	inputMessages   chan *tgbotapi.Message
-	callbackQueries chan *tgbotapi.CallbackQuery
-	/*
-		messageHandlers  map[MessageAction]func(message *tgbotapi.Message) error
-		callbackHandlers map[ButtonAction]callbackHandlerFunc
+	inputMessages    chan *tgbotapi.Message
+	callbackQueries  chan *tgbotapi.CallbackQuery
+	messageHandlers  map[MessageAction]func(message *tgbotapi.Message) error
+	callbackHandlers map[ButtonAction]callbackHandlerFunc
 
+	/*
 		expectedAnswers expectedAnswersStorage
 	*/
 
@@ -54,9 +54,9 @@ func NewHandler(db core.StorageHandler, token, domain, url, cert string) (*Handl
 			return nil, err
 		}
 
-		m.initHandlers()
-
 	*/
+
+	m.initHandlers()
 	go m.handleMessages()
 	go m.handleCallbacks()
 
@@ -110,7 +110,6 @@ func (mh *Handler) handleCallbacks() {
 		fmt.Printf("unknown callback %s\n", callback.Data)
 		/*
 			}
-
 		*/
 	}
 }
@@ -121,28 +120,87 @@ func (mh *Handler) handleMessages() {
 			continue
 		}
 
+		// bot works only in groups
+		if !message.Chat.IsGroup() {
+			continue
+		}
+
+		var action MessageAction
 		/*
-			var action MessageAction
-			action = mh.expectedAnswers.Get(messageId(message))
-			if action == Undefined {
-				action = determine(message)
-			}
-
-			handler, exist := mh.messageHandlers[action]
-			if exist {
-				err := handler(message)
-				if err != nil {
-					fmt.Printf("error in handler %d: %v\n", action, err)
-				}
-			} else {
-
+				action = mh.expectedAnswers.Get(messageId(message))
+			action == Undefined {
 		*/
-		fmt.Printf("no handler for the message: %+v", message)
+		action = determine(message)
 		/*
 			}
 		*/
+
+		handler, exist := mh.messageHandlers[action]
+		if exist {
+			err := handler(message)
+			if err != nil {
+				fmt.Printf("error in handler %d: %v\n", action, err)
+			}
+		} else {
+
+			fmt.Printf("no handler for the message: %+v", message)
+		}
 	}
 }
+
+func (mh *Handler) initHandlers() {
+	mh.messageHandlers = map[MessageAction]func(message *tgbotapi.Message) error{}
+	mh.messageHandlers[Undefined] = mh.undefined
+	mh.messageHandlers[NewGroup] = mh.newGroup
+	/*
+		mh.messageHandlers[Topics] = mh.changeTopicsHandler
+		mh.messageHandlers[Settings] = mh.changeSettingsHandler
+		mh.messageHandlers[NewEvent] = mh.newEvent
+		mh.messageHandlers[MainMenu] = mh.askMainMenu
+		mh.messageHandlers[AskEventName] = mh.askEventName
+		mh.messageHandlers[AskEventDescription] = mh.askEventDescription
+		mh.messageHandlers[AskEventCost] = mh.askEventCost
+		mh.messageHandlers[AskEventEquipment] = mh.askEventEquipment
+		mh.messageHandlers[AskEventMaxAmount] = mh.askEventMaxAmount
+		mh.messageHandlers[AskEventDate] = mh.askEventDate
+		mh.messageHandlers[AskEventTime] = mh.askEventTime
+	*/
+
+	mh.callbackHandlers = map[ButtonAction]callbackHandlerFunc{}
+	/*
+		mh.callbackHandlers[onboardEnd] = mh.onboardEndCallback
+		mh.callbackHandlers[chooseTopicYes] = mh.chooseTopicYesCallback
+		mh.callbackHandlers[chooseTopicNo] = mh.chooseTopicNoCallback
+		mh.callbackHandlers[configureNotifications5] = mh.configureNotificationsCallback
+		mh.callbackHandlers[configureNotifications10] = mh.configureNotificationsCallback
+		mh.callbackHandlers[configureNotifications15] = mh.configureNotificationsCallback
+		mh.callbackHandlers[configureNotifications20] = mh.configureNotificationsCallback
+		mh.callbackHandlers[initialConfigureNotifications5] = mh.configureNotificationsCallback
+		mh.callbackHandlers[initialConfigureNotifications10] = mh.configureNotificationsCallback
+		mh.callbackHandlers[initialConfigureNotifications15] = mh.configureNotificationsCallback
+		mh.callbackHandlers[initialConfigureNotifications20] = mh.configureNotificationsCallback
+		mh.callbackHandlers[initialConfigurationEnd] = mh.initialConfigurationEndCallback
+		mh.callbackHandlers[configurationEdit] = mh.changeTopicsCallback
+		mh.callbackHandlers[topicEdited] = mh.topicEditedCallback
+		mh.callbackHandlers[topicsSaved] = mh.topicsSavedCallback
+		mh.callbackHandlers[newEventTopic] = mh.newEventTopicCallback
+		mh.callbackHandlers[setEventComplexityHard] = mh.setEventComplexityCallback
+		mh.callbackHandlers[setEventComplexityMid] = mh.setEventComplexityCallback
+		mh.callbackHandlers[setEventComplexityEasy] = mh.setEventComplexityCallback
+		mh.callbackHandlers[showEventDetails] = mh.showEventDetailsCallback
+	*/
+}
+
+type MessageAction int
+
+const (
+	Undefined MessageAction = iota
+	NewGroup
+)
+
+type ButtonAction string
+
+type callbackHandlerFunc func(message *tgbotapi.CallbackQuery) error
 
 func (mh *Handler) HandleMessages(writer http.ResponseWriter, request *http.Request) {
 	defer request.Body.Close()
@@ -151,7 +209,6 @@ func (mh *Handler) HandleMessages(writer http.ResponseWriter, request *http.Requ
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(string(bytes))
 	var message tgbotapi.Update
 	err = json.Unmarshal(bytes, &message)
 	if err != nil {
@@ -160,4 +217,19 @@ func (mh *Handler) HandleMessages(writer http.ResponseWriter, request *http.Requ
 	}
 	go func() { mh.inputMessages <- message.Message }()
 	go func() { mh.callbackQueries <- message.CallbackQuery }()
+}
+
+func determine(msg *tgbotapi.Message) MessageAction {
+	if msg.Text == "/start" {
+		entityMatch := false
+		for _, ent := range msg.Entities {
+			if ent.Type == "bot_command" && ent.Offset == 0 && ent.Length == 6 {
+				entityMatch = true
+			}
+		}
+		if entityMatch {
+			return NewGroup
+		}
+	}
+	return Undefined
 }

@@ -20,3 +20,7 @@ func NewPostgresStorage(user, pass, host, db string, port uint16) (*PostgresStor
 		db: dbd,
 	}, nil
 }
+
+func (p PostgresStorage) AddGroup(chatId int64) error {
+	return nil
+}
