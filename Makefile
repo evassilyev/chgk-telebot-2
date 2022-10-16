@@ -65,12 +65,17 @@ run-local-docker-db:
 migrate:
 	@migrate -database "postgres://$(TEST_DB_USER):$(TEST_DB_PASS)@$(TEST_DB_HOST):$(TEST_DB_PORT)/$(TEST_DB_NAME)?sslmode=disable" -path internal/migrations up
 
+.PHONY: generate-models
+generate-models: migrate
+	@xo schema "postgres://$(TEST_DB_USER):$(TEST_DB_PASS)@$(TEST_DB_HOST):$(TEST_DB_PORT)/$(TEST_DB_NAME)?sslmode=disable" --exclude schema_migrations -o internal/core/gen/models
+
 VARS=$(shell cat .test.env | xargs)
 
 .PHONY: test
 test: run-local-docker-db migrate
 	@env $(VARS) $(GO) test -v ./...
 
+# Server stuff
 .PHONY: run-db-on-server
 run-db-on-server:
 	@$(RUN_ON_VPS) "sudo docker network create $(DOCKER_NETWORK_NAME) || true"
