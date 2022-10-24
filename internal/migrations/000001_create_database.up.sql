@@ -1,6 +1,6 @@
 create table public.groups
 (
-    id                     integer               not null
+    id                     bigint not null
         constraint groups_pk
             primary key,
     package_size           integer default 15    not null,

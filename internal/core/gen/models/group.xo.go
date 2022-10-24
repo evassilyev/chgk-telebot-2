@@ -11,7 +11,7 @@ import (
 
 // Group represents a row from 'public.groups'.
 type Group struct {
-	ID                  int             `json:"id"`                     // id
+	ID                  int64           `json:"id"`                     // id
 	PackageSize         int             `json:"package_size"`           // package_size
 	QuestionsTypes      pq.GenericArray `json:"questions_types"`        // questions_types
 	Timer               int             `json:"timer"`                  // timer
@@ -133,7 +133,7 @@ func (g *Group) Delete(ctx context.Context, db DB) error {
 // GroupByID retrieves a row from 'public.groups' as a Group.
 //
 // Generated from index 'groups_pk'.
-func GroupByID(ctx context.Context, db DB, id int) (*Group, error) {
+func GroupByID(ctx context.Context, db DB, id int64) (*Group, error) {
 	// query
 	const sqlstr = `SELECT ` +
 		`id, package_size, questions_types, timer, next_question_on_timer, earliest_year ` +
