@@ -47,9 +47,9 @@ deploy: generate-certificates build check-migration-on-server
 	@scp certificates/cert.pem $(SERVER):bot/certificates/cert.pem
 	@scp certificates/key.pem $(SERVER):bot/certificates/key.pem
 	@echo "Docker building and starting..."
-	@$(RUN_ON_VPS) "sudo docker image build -f bot/Dockerfile --build-arg EXPOSE_PORT=$(CHGKBOT_PORT) -t chgkbot bot"
-	@$(RUN_ON_VPS) "sudo docker tag chgkbot:latest chgkbot:$(VERSION)"
-	@$(RUN_ON_VPS) "sudo docker container rm -f chgk && sudo docker run -p 443:$(CHGKBOT_PORT) --network $(DOCKER_NETWORK_NAME) --env-file bot/00.env -d --name chgk chgkbot:$(VERSION)"
+	@$(RUN_ON_VPS) "sudo docker image build -f bot/Dockerfile --build-arg EXPOSE_PORT=$(CHGKBOT_PORT) -t $(SERVICE_NAME)bot bot"
+	@$(RUN_ON_VPS) "sudo docker tag $(SERVICE_NAME)bot:latest $(SERVICE_NAME)bot:$(VERSION)"
+	@$(RUN_ON_VPS) "sudo docker container rm -f $(SERVICE_NAME) && sudo docker run -p 443:$(CHGKBOT_PORT) --network $(DOCKER_NETWORK_NAME) --env-file bot/00.env -d --name $(SERVICE_NAME) $(SERVICE_NAME)bot:$(VERSION)"
 	@echo "Deploy completed"
 
 include .test.env

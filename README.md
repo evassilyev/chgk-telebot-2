@@ -49,4 +49,5 @@ DOCKER_NETWORK_NAME=dockernet # random name for docker internal communications
 ENV_PATH=cmd/bot/.env # path to environment file that bot use
 REMOTE_DB_IP=8.8.8.8 # remote database IP
 REMOTE_DB_PORT=222 # remote database port
+SERVICE_NAME=mysrv # service name used in Docker image & container building
 ```
