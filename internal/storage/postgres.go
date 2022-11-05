@@ -23,7 +23,6 @@ func NewPostgresStorage(user, pass, host, db string, port uint16) (*PostgresStor
 	}, nil
 }
 
-// TODO debug and fix it
 func (p PostgresStorage) AddGroup(groupId int64) error {
 	g := models.Group{
 		ID: groupId,

@@ -67,7 +67,7 @@ migrate:
 
 .PHONY: generate-models
 generate-models: migrate
-	@xo schema "postgres://$(TEST_DB_USER):$(TEST_DB_PASS)@$(TEST_DB_HOST):$(TEST_DB_PORT)/$(TEST_DB_NAME)?sslmode=disable" --exclude schema_migrations -o internal/core/gen/models
+	@xo schema "postgres://$(TEST_DB_USER):$(TEST_DB_PASS)@$(TEST_DB_HOST):$(TEST_DB_PORT)/$(TEST_DB_NAME)?sslmode=disable" --exclude schema_migrations --src internal/templates  -o internal/core/gen/models
 
 VARS=$(shell cat .test.env | xargs)
 

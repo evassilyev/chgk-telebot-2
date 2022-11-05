@@ -11,12 +11,12 @@ import (
 
 // Group represents a row from 'public.groups'.
 type Group struct {
-	ID                  int64           `json:"id"`                     // id
-	PackageSize         int             `json:"package_size"`           // package_size
-	QuestionsTypes      pq.GenericArray `json:"questions_types"`        // questions_types
-	Timer               int             `json:"timer"`                  // timer
-	NextQuestionOnTimer bool            `json:"next_question_on_timer"` // next_question_on_timer
-	EarliestYear        sql.NullInt64   `json:"earliest_year"`          // earliest_year
+	ID                  int64         `json:"id"`                     // id
+	PackageSize         int64         `json:"package_size"`           // package_size
+	QuestionsTypes      pq.Int64Array `json:"questions_types"`        // questions_types
+	Timer               int64         `json:"timer"`                  // timer
+	NextQuestionOnTimer bool          `json:"next_question_on_timer"` // next_question_on_timer
+	EarliestYear        sql.NullInt64 `json:"earliest_year"`          // earliest_year
 	// xo fields
 	_exists, _deleted bool
 }
@@ -42,13 +42,13 @@ func (g *Group) Insert(ctx context.Context, db DB) error {
 	}
 	// insert (manual)
 	const sqlstr = `INSERT INTO public.groups (` +
-		`id, package_size, questions_types, timer, next_question_on_timer, earliest_year` +
+		`id, next_question_on_timer, earliest_year` +
 		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6` +
+		`$1, $2, $3` +
 		`)`
 	// run
 	logf(sqlstr, g.ID, g.PackageSize, g.QuestionsTypes, g.Timer, g.NextQuestionOnTimer, g.EarliestYear)
-	if _, err := db.ExecContext(ctx, sqlstr, g.ID, g.PackageSize, g.QuestionsTypes, g.Timer, g.NextQuestionOnTimer, g.EarliestYear); err != nil {
+	if _, err := db.ExecContext(ctx, sqlstr, g.ID, g.NextQuestionOnTimer, g.EarliestYear); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -92,16 +92,16 @@ func (g *Group) Upsert(ctx context.Context, db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO public.groups (` +
-		`id, package_size, questions_types, timer, next_question_on_timer, earliest_year` +
+		`id, next_question_on_timer, earliest_year` +
 		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6` +
+		`$1, $2, $3` +
 		`)` +
 		` ON CONFLICT (id) DO ` +
 		`UPDATE SET ` +
 		`package_size = EXCLUDED.package_size, questions_types = EXCLUDED.questions_types, timer = EXCLUDED.timer, next_question_on_timer = EXCLUDED.next_question_on_timer, earliest_year = EXCLUDED.earliest_year `
 	// run
 	logf(sqlstr, g.ID, g.PackageSize, g.QuestionsTypes, g.Timer, g.NextQuestionOnTimer, g.EarliestYear)
-	if _, err := db.ExecContext(ctx, sqlstr, g.ID, g.PackageSize, g.QuestionsTypes, g.Timer, g.NextQuestionOnTimer, g.EarliestYear); err != nil {
+	if _, err := db.ExecContext(ctx, sqlstr, g.ID, g.NextQuestionOnTimer, g.EarliestYear); err != nil {
 		return logerror(err)
 	}
 	// set exists
